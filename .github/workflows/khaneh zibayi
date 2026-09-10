@@ -1,0 +1,52 @@
+name: Initialize Shadiar Flutter App & Build APK
+
+on:
+  workflow_dispatch:   # برای اجرا دستی
+  push:
+    branches: [main]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Create new Flutter project
+        run: |
+          flutter create .
+          flutter pub get
+
+      - name: Add dependencies (MVVM + Riverpod + Drift + Calendar)
+        run: |
+          flutter pub add riverpod@^2.5.1
+          flutter pub add drift
+          flutter pub add drift_flutter
+          flutter pub add calendar_view
+          flutter pub add flutter_slidable
+
+      - name: Commit and push initial setup
+        run: |
+          git config user.name "Shadiar"
+          git config user.email "shadiar@example.com"
+          git add .
+          git commit -m "feat: initial Flutter setup with MVVM + Riverpod 2.5 + Drift + CalendarView"
+          git push
+
+      - name: Build Release APK
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadiar-apk
+          path: build/app/outputs/apk/release/app-release.apk
+          if-no-files-found: error
